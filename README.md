@@ -148,5 +148,27 @@ A Plugin is an HTTP server that exposes a manifest and optional action/trigger e
 
 ## Requirements
 
-- Go 1.22+ (uses the new `http.ServeMux` routing patterns)
+- Go 1.27.3 or newer
 - No external dependencies
+
+## TLS security updates
+
+Go 1.27.3 is the minimum supported compiler after the
+[eMudhra intermediate CA compromise](https://emudhra.we-have-a-problem.com/).
+This raises the previous Go 1.22 requirement. The SDK uses the Go standard
+library for HTTPS certificate verification, so rebuild and redeploy existing
+applications with Go 1.27.3 or newer. Updating the module alone does not change
+an already compiled executable. Custom HTTP clients must keep certificate
+verification enabled and maintain any custom trust configuration.
+
+Run the optional live TLS check with:
+
+```sh
+go test -tags=integration -run TestEmudhraTLS -count=1 -v .
+```
+
+The check uses the SDK's event client without credentials against both published
+eMudhra test chains. It requires certificate rejection for both hosts and a
+successful HTTPS response from `https://example.com/`. DNS failures and timeouts
+fail the check and do not establish protection. The check connects directly,
+without an HTTP proxy, using Go's default TLS verification and system roots.
